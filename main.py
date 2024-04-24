@@ -1,17 +1,53 @@
-from discord.ext import commands
+from discord import channel
+from discord.ext import commands, tasks
 import discord
 import os
+from dataclasses import dataclass
+import datetime
 import requests
 import json
 
+MAX_SESSION_TIME_MINUTES = 30
+
+@dataclass
+class Session:
+  is_active: bool = False
+  start_time: int = 0
+
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
+session = Session()
 
 @bot.event
 async def on_ready():
   print(f'Logged in as {bot.user}')
 
+@tasks.loop(minutes=MAX_SESSION_TIME_MINUTES, count=2)
+async def break_reminder():
+  ch = bot.get_channel(timer_channel)
+  # await ch.send(f'Break time is up! Take a break!')
+
 @bot.command()
-async def hello(ctx):
-  await ctx.send('Hello!')
+async def start(ctx):
+  if session.is_active:
+    await ctx.send('Session is already active')
+    return
+  global timer_channel
+  timer_channel = ctx.channel.id
+  session.is_active = True
+  session.start_time = ctx.message.created_at.timestamp()
+  human_readable_time = ctx.message.created_at.strftime('%H:%M:%S')
+  await ctx.send(f'New session started at {human_readable_time}')
+
+@bot.command()
+async def stop(ctx):
+  if not session.is_active:
+    await ctx.send('No session is active')
+    return
+  session.is_active = False
+  end_time = ctx.message.created_at.timestamp()
+  duration = end_time - session.start_time
+  human_readable_time = ctx.message.created_at.strftime('%H:%M:%S')
+  human_readable_duration = str(datetime.timedelta(seconds=duration))
+  await ctx.send(f'Session ended at {human_readable_time} with a duration of {human_readable_duration}')
 
 bot.run(os.environ['TOKEN'])
