@@ -4,8 +4,6 @@ import discord
 import os
 from dataclasses import dataclass
 import datetime
-import requests
-import json
 
 MAX_SESSION_TIME_MINUTES = 30
 
@@ -23,8 +21,9 @@ async def on_ready():
 
 @tasks.loop(minutes=MAX_SESSION_TIME_MINUTES, count=2)
 async def break_reminder():
-  ch = bot.get_channel(timer_channel)
-  # await ch.send(f'Break time is up! Take a break!')
+  if break_reminder.current_loop == 0:
+    return
+  await timer_channel.send(f"Take a break! You've been studying for {MAX_SESSION_TIME_MINUTES} minutes.")
 
 @bot.command()
 async def start(ctx):
@@ -32,10 +31,11 @@ async def start(ctx):
     await ctx.send('Session is already active')
     return
   global timer_channel
-  timer_channel = ctx.channel.id
+  timer_channel = ctx.channel
   session.is_active = True
   session.start_time = ctx.message.created_at.timestamp()
   human_readable_time = ctx.message.created_at.strftime('%H:%M:%S')
+  break_reminder.start()
   await ctx.send(f'New session started at {human_readable_time}')
 
 @bot.command()
@@ -48,6 +48,7 @@ async def stop(ctx):
   duration = end_time - session.start_time
   human_readable_time = ctx.message.created_at.strftime('%H:%M:%S')
   human_readable_duration = str(datetime.timedelta(seconds=duration))
+  break_reminder.stop()
   await ctx.send(f'Session ended at {human_readable_time} with a duration of {human_readable_duration}')
 
 bot.run(os.environ['TOKEN'])
