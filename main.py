@@ -1,9 +1,10 @@
-from discord import channel
 from discord.ext import commands, tasks
 import discord
 import os
 from dataclasses import dataclass
 import datetime
+import requests
+import json
 
 MAX_SESSION_TIME_MINUTES = 30
 
@@ -50,5 +51,23 @@ async def stop(ctx):
   human_readable_duration = str(datetime.timedelta(seconds=duration))
   break_reminder.stop()
   await ctx.send(f'Session ended at {human_readable_time} with a duration of {human_readable_duration}')
+
+@bot.command()
+async def github(ctx):
+  github_username = ctx.message.content.split(' ')[-1]
+  response = requests.get(f'https://api.github.com/users/{github_username}')
+  if response.status_code == 200:
+    user_data = response.json()
+    user_details = f"Username: {user_data['login']}\n"
+    repos_response = requests.get(user_data['repos_url'])
+    if repos_response.status_code == 200:
+      repos_data = repos_response.json()
+      user_repos = [repo['name'] for repo in repos_data]
+      sep = "\n - "
+      await ctx.send(f"```{user_details}\nRepositories:\n - {sep.join(user_repos)}```")
+    else:
+      await ctx.send('Failed to fetch user repositories')
+  else:
+    await ctx.send('User not found')
 
 bot.run(os.environ['TOKEN'])
