@@ -70,4 +70,13 @@ async def github(ctx):
   else:
     await ctx.send('User not found')
 
+@bot.command()
+async def randomgif(ctx):
+    response = requests.get('https://api.giphy.com/v1/gifs/random', params={'api_key': 'RKrxKNx0rzll1ty7T12rd8rDMdow8cUG'})
+    if response.status_code == 200:
+        gif_url = response.json()['data']['embed_url']
+        await ctx.send(gif_url)
+    else:
+        await ctx.send('Failed to fetch random gif')
+
 bot.run(os.environ['TOKEN'])
