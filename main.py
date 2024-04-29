@@ -4,9 +4,9 @@ import os
 from dataclasses import dataclass
 import datetime
 import requests
-import json
 
 MAX_SESSION_TIME_MINUTES = 30
+GIPHY_API_KEY = os.environ['GIPHY_API']
 
 @dataclass
 class Session:
@@ -72,11 +72,21 @@ async def github(ctx):
 
 @bot.command()
 async def randomgif(ctx):
-    response = requests.get('https://api.giphy.com/v1/gifs/random', params={'api_key': 'RKrxKNx0rzll1ty7T12rd8rDMdow8cUG'})
+    response = requests.get('https://api.giphy.com/v1/gifs/random', params={'api_key': GIPHY_API_KEY})
     if response.status_code == 200:
         gif_url = response.json()['data']['embed_url']
         await ctx.send(gif_url)
     else:
         await ctx.send('Failed to fetch random gif')
+
+@bot.command()
+async def gif(ctx):
+  query = ctx.message.content.split(' ')[-1]
+  response = requests.get('https://api.giphy.com/v1/gifs/search', params={'api_key': GIPHY_API_KEY, 'q': query})
+  if response.status_code == 200:
+    gif_url = response.json()['data'][0]['embed_url']
+    await ctx.send(gif_url)
+  else:
+    await ctx.send('Failed to fetch gif')
 
 bot.run(os.environ['TOKEN'])
