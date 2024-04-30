@@ -7,6 +7,7 @@ import requests
 
 MAX_SESSION_TIME_MINUTES = 30
 GIPHY_API_KEY = os.environ['GIPHY_API']
+WEATHER_API_KEY = os.environ['WEATHER_API']
 
 @dataclass
 class Session:
@@ -88,5 +89,23 @@ async def gif(ctx):
     await ctx.send(gif_url)
   else:
     await ctx.send('Failed to fetch gif')
+
+@bot.command()
+async def cat(ctx):
+    response = requests.get('https://api.giphy.com/v1/gifs/random', params={'api_key': GIPHY_API_KEY, 'tag': 'cat'})
+    if response.status_code == 200:
+        gif_url = response.json()['data']['embed_url']
+        await ctx.send(gif_url)
+    else:
+        await ctx.send('Failed to fetch cat gif')
+
+@bot.command()
+async def dog(ctx):
+    response = requests.get('https://api.giphy.com/v1/gifs/random', params={'api_key': GIPHY_API_KEY, 'tag': 'dog'})
+    if response.status_code == 200:
+        gif_url = response.json()['data']['embed_url']
+        await ctx.send(gif_url)
+    else:
+        await ctx.send('Failed to fetch dog gif')
 
 bot.run(os.environ['TOKEN'])
