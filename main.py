@@ -108,4 +108,13 @@ async def dog(ctx):
     else:
         await ctx.send('Failed to fetch dog gif')
 
+@bot.command()
+async def valorant(ctx):
+    response = requests.get('https://api.giphy.com/v1/gifs/random', params={'api_key': GIPHY_API_KEY, 'tag': 'valorant'})
+    if response.status_code == 200:
+        gif_url = response.json()['data']['embed_url']
+        await ctx.send(gif_url)
+    else:
+        await ctx.send('Failed to fetch valorant gif')
+
 bot.run(os.environ['TOKEN'])
