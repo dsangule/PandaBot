@@ -53,6 +53,10 @@ async def stop(ctx):
   break_reminder.stop()
   await ctx.send(f'Session ended at {human_readable_time} with a duration of {human_readable_duration}')
 
+    @bot.command()
+    async def hello(ctx):
+        await ctx.send(f"Hi {ctx.author.mention}!")
+
 @bot.command()
 async def github(ctx):
   github_username = ctx.message.content.split(' ')[-1]
